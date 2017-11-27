@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.skywalking</groupId>
+    <artifactId>apm-extend</artifactId>
+    <packaging>pom</packaging>
+    <version>3.2.5-2017</version>
+    <modules>
+        <module>apm-extend-sniffer</module>
+    </modules>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <compiler.version>1.8</compiler.version>
+        <scala.compiler.version>2.11.7</scala.compiler.version>
+        <powermock.version>1.6.4</powermock.version>
+        <docker.plugin.version>0.4.13</docker.plugin.version>
+        <checkstyle.header.file>java.header</checkstyle.header.file>
+    </properties>
+
+</project>
