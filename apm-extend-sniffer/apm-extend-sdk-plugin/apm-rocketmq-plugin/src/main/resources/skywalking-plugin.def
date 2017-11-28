@@ -1,2 +1,3 @@
+rocketmq-config=org.skywalking.apm.plugin.rocketmq.config.RocketMQClientConfigInstrumentation
 rocketmq-send=org.skywalking.apm.plugin.rocketmq.send.RocketMQSendInstrumentation
 rocketmq-consume=org.skywalking.apm.plugin.rocketmq.consume.RocketMQConsumeInstrumentation

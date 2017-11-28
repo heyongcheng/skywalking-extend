@@ -2,15 +2,18 @@ package org.skywalking.apm.plugin.rocketmq.send;
 
 import org.apache.rocketmq.common.MixAll;
 import org.apache.rocketmq.common.message.Message;
+import org.apache.rocketmq.remoting.common.RemotingUtil;
 import org.skywalking.apm.agent.core.context.CarrierItem;
 import org.skywalking.apm.agent.core.context.ContextCarrier;
 import org.skywalking.apm.agent.core.context.ContextManager;
+import org.skywalking.apm.agent.core.context.tag.Tags;
 import org.skywalking.apm.agent.core.context.trace.AbstractSpan;
 import org.skywalking.apm.agent.core.context.trace.SpanLayer;
 import org.skywalking.apm.agent.core.plugin.interceptor.enhance.EnhancedInstance;
 import org.skywalking.apm.agent.core.plugin.interceptor.enhance.InstanceMethodsAroundInterceptor;
 import org.skywalking.apm.agent.core.plugin.interceptor.enhance.MethodInterceptResult;
 import org.skywalking.apm.network.trace.component.ComponentsDefine;
+import org.skywalking.apm.plugin.rocketmq.config.RocketMQClientConfig;
 
 import java.lang.reflect.Method;
 
@@ -48,18 +51,20 @@ public class RocketMQSendInterceptor implements InstanceMethodsAroundInterceptor
      * @param result         change this result, if you want to truncate the method.  @throws Throwable
      */
     public void beforeMethod(EnhancedInstance objInst, Method method, Object[] allArguments, Class<?>[] argumentsTypes, MethodInterceptResult result) throws Throwable {
-        String remotePeer = System.getProperty(MixAll.NAMESRV_ADDR_PROPERTY, System.getenv(MixAll.NAMESRV_ADDR_ENV));
-        final ContextCarrier contextCarrier = new ContextCarrier();
-        AbstractSpan span = ContextManager.createExitSpan(ROCKETMQ_SEND_OP_PERFIX + method.getName(), contextCarrier, remotePeer);
+        //String remotePeer = System.getProperty(MixAll.NAMESRV_ADDR_PROPERTY, System.getenv(MixAll.NAMESRV_ADDR_ENV));
         Message message = getMessageArg(allArguments);
+        final ContextCarrier contextCarrier = new ContextCarrier();
+        AbstractSpan span = ContextManager.createExitSpan(ROCKETMQ_SEND_OP_PERFIX + method.getName(), contextCarrier, RemotingUtil.getLocalAddress());
         if (message != null) {
             CarrierItem next = contextCarrier.items();
             while (next.hasNext()) {
                 next = next.next();
-                message.putUserProperty(next.getHeadKey(),next.getHeadValue());
+                if (next.getHeadValue() != null) {
+                    message.putUserProperty(next.getHeadKey(),next.getHeadValue());
+                }
             }
         }
-        span.setComponent("ROCKETMQ");
+        Tags.URL.set(span, RocketMQClientConfig.getNamesrvAddr());
         SpanLayer.asMQ(span);
     }
 
