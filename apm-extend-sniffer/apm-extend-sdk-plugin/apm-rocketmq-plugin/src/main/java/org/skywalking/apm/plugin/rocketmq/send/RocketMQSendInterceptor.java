@@ -13,6 +13,7 @@ import org.skywalking.apm.agent.core.plugin.interceptor.enhance.EnhancedInstance
 import org.skywalking.apm.agent.core.plugin.interceptor.enhance.InstanceMethodsAroundInterceptor;
 import org.skywalking.apm.agent.core.plugin.interceptor.enhance.MethodInterceptResult;
 import org.skywalking.apm.network.trace.component.ComponentsDefine;
+import org.skywalking.apm.network.trace.component.OfficialComponent;
 import org.skywalking.apm.plugin.rocketmq.config.RocketMQClientConfig;
 
 import java.lang.reflect.Method;
@@ -23,7 +24,7 @@ import java.lang.reflect.Method;
  */
 public class RocketMQSendInterceptor implements InstanceMethodsAroundInterceptor {
 
-    private static final String ROCKETMQ_SEND_OP_PERFIX = "ROCKETMQ_SEND/";
+    private static final String ROCKETMQ_SEND_OP_PERFIX = "RocketMQ/Producer/";
 
     /**
      * getMessageArg
@@ -51,11 +52,12 @@ public class RocketMQSendInterceptor implements InstanceMethodsAroundInterceptor
      * @param result         change this result, if you want to truncate the method.  @throws Throwable
      */
     public void beforeMethod(EnhancedInstance objInst, Method method, Object[] allArguments, Class<?>[] argumentsTypes, MethodInterceptResult result) throws Throwable {
-        //String remotePeer = System.getProperty(MixAll.NAMESRV_ADDR_PROPERTY, System.getenv(MixAll.NAMESRV_ADDR_ENV));
+        //String remotePeer = RemotingUtil.getLocalAddress();
         Message message = getMessageArg(allArguments);
         final ContextCarrier contextCarrier = new ContextCarrier();
-        AbstractSpan span = ContextManager.createExitSpan(ROCKETMQ_SEND_OP_PERFIX + method.getName(), contextCarrier, RemotingUtil.getLocalAddress());
+        AbstractSpan span = ContextManager.createExitSpan(ROCKETMQ_SEND_OP_PERFIX + method.getName(), contextCarrier, RocketMQClientConfig.getNamesrvAddr());
         if (message != null) {
+            span.tag("topic", message.getTopic());
             CarrierItem next = contextCarrier.items();
             while (next.hasNext()) {
                 next = next.next();
@@ -64,7 +66,7 @@ public class RocketMQSendInterceptor implements InstanceMethodsAroundInterceptor
                 }
             }
         }
-        Tags.URL.set(span, RocketMQClientConfig.getNamesrvAddr());
+        span.setComponent(new OfficialComponent(25, "RocketMQ"));
         SpanLayer.asMQ(span);
     }
 

@@ -10,6 +10,7 @@ import org.skywalking.apm.agent.core.context.trace.SpanLayer;
 import org.skywalking.apm.agent.core.plugin.interceptor.enhance.EnhancedInstance;
 import org.skywalking.apm.agent.core.plugin.interceptor.enhance.InstanceMethodsAroundInterceptor;
 import org.skywalking.apm.agent.core.plugin.interceptor.enhance.MethodInterceptResult;
+import org.skywalking.apm.network.trace.component.OfficialComponent;
 import org.skywalking.apm.plugin.rocketmq.config.RocketMQClientConfig;
 
 import java.lang.reflect.Method;
@@ -21,7 +22,7 @@ import java.util.List;
  */
 public class RocketMQConsumeInterceptor implements InstanceMethodsAroundInterceptor {
 
-    private static final String ROCKETMQ_COMSUME_OP_PERFIX = "ROCKETMQ_COMSUME/";
+    private static final String ROCKETMQ_COMSUME_OP_PERFIX = "RocketMQ/Consume/";
     /**
      * getMessageExts
      * @param allArguments
@@ -54,7 +55,7 @@ public class RocketMQConsumeInterceptor implements InstanceMethodsAroundIntercep
             }
         }
         AbstractSpan span = ContextManager.createEntrySpan(ROCKETMQ_COMSUME_OP_PERFIX + method.getName(), contextCarrier);
-        Tags.URL.set(span, RocketMQClientConfig.getNamesrvAddr());
+        span.setComponent(new OfficialComponent(25, "RocketMQ"));
         SpanLayer.asMQ(span);
     }
 
